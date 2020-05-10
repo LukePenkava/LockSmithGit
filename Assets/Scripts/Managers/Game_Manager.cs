@@ -89,9 +89,9 @@ public class Game_Manager : MonoBehaviour
 
         //Set Level
         selectedType = Type.Numbers;
-        numbersUsed = Random.Range(3, 4);
-        combinationLength = Random.Range(3, 4);
-        timeStep = 3.0f;
+        numbersUsed = Random.Range(4, 6);
+        combinationLength = Random.Range(5, 10);
+        timeStep = 2.0f;  //0.8 hard
 
 
 
