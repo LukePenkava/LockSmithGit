@@ -10,7 +10,7 @@ public class SpinnerNumber : MonoBehaviour
     [SerializeField] Color colorNormal;
     [SerializeField] Color colorHighlight;
 
-    Game_Manager.Type type;
+    string type;
     int index;
     public int Index
     {
@@ -18,7 +18,7 @@ public class SpinnerNumber : MonoBehaviour
         set { index = value; }
     }
 
-    public void Init(int num, Game_Manager.Type Type)
+    public void Init(int num, string Type)
     {
         type = Type;
         string directory = Helper.GetDirectory(type);

@@ -5,10 +5,10 @@ using UnityEngine;
 public class CombinationNumber : MonoBehaviour
 {
     public SpriteRenderer visual;
-    Game_Manager.Type type = Game_Manager.Type.Numbers;
+    string type = "";
     float scale = 0.2f;
 
-    public void Init(Game_Manager.Type Type)
+    public void Init(string Type)
     {
         type = Type;
         string directory = Helper.GetDirectory(type);

@@ -7,18 +7,23 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MatTimer
-  m_Shader: {fileID: 4800000, guid: 2818f4b6e91cd4acfb663b9bac0394a1, type: 3}
-  m_ShaderKeywords: _AXIS_Z_ON _CLOCKDIRECTION_ON
+  m_Name: LevelBackground
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderKeywords: ETC1_EXTERNAL_ALPHA _ALPHATEST_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 2450
+  stringTagMap:
+    RenderType: TransparentCutout
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _BumpMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -56,23 +61,17 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _Axis_X: 0
-    - _Axis_Y: 0
-    - _Axis_Z: 1
+    - PixelSnap: 0
     - _BumpScale: 1
-    - _ClockDirection: 1
-    - _Cutoff: 0
-    - _Degrees: -90
+    - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _FillClock: 0.18941897
-    - _FillLinear: 2
-    - _FillSpherical: 2
+    - _EnableExternalAlpha: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.79
+    - _Glossiness: 0.299
     - _GlossyReflections: 1
-    - _Metallic: 0.914
-    - _Mode: 0
+    - _Metallic: 0.089
+    - _Mode: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
@@ -80,8 +79,8 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - __dirty: 1
     m_Colors:
-    - _Color: {r: 0.8773585, g: 0.70490015, b: 0.3517711, a: 1}
-    - _Emission: {r: 0.9811321, g: 0.77494234, b: 0.34709862, a: 1}
+    - _Color: {r: 0.2790139, g: 0.33403623, b: 0.3584906, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}

@@ -4,16 +4,27 @@ using UnityEngine;
 
 public static class Helper
 {
-    public static string GetDirectory(Game_Manager.Type type)
+    //Level Setup
+    public static string[] Types = { "Numbers", "Symbols" };
+    public static int minNumbers = 4;
+    public static int maxNumbers = 5; //7
+    public static int minCombinationLength = 3;
+    public static int maxCombinationLength = 5;//11
+    public static float minTimeStep = 0.8f;
+    public static float maxTimeStep = 2.5f;
+
+
+
+    public static string GetDirectory(string type)
     {
         string val = "";
 
         switch(type)
         {
-            case Game_Manager.Type.Numbers:
+            case "Numbers":
                 val = "Numbers";
                 break;
-            case Game_Manager.Type.Symbols:
+            case "Symbols":
                 val = "Symbols";
                 break;
             default:
@@ -24,16 +35,16 @@ public static class Helper
         return val;
     }
 
-    public static string GetType(Game_Manager.Type type)
+    public static string GetType(string type)
     {
         string val = "";
 
         switch (type)
         {
-            case Game_Manager.Type.Numbers:
+            case "Numbers":
                 val = "Number";
                 break;
-            case Game_Manager.Type.Symbols:
+            case "Symbols":
                 val = "Symbol";
                 break;
             default:
@@ -42,5 +53,5 @@ public static class Helper
         }
 
         return val;
-    }
+    }  
 }

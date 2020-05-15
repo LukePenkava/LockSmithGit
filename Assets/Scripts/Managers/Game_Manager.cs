@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Game_Manager : MonoBehaviour
 {
@@ -23,13 +24,16 @@ public class Game_Manager : MonoBehaviour
     List<GearObject> gearsList = new List<GearObject>();
     List<CircleNumber> circleNumbers = new List<CircleNumber>();
 
-    public enum Type
+   /* public enum Type
     {
         Numbers,
         Symbols
     };
 
-    Type selectedType = Type.Numbers;
+    Type selectedType = Type.Numbers;*/
+
+ 
+    string selectedType = "";
 
     //Setup
     int numbersUsed = 4; //What numbers will be used, 0 - ?
@@ -63,21 +67,45 @@ public class Game_Manager : MonoBehaviour
     float levelTime = 2f;
     float curTime = 0f;
 
-
+    //Saving
+    List<LevelObject> loadedLevels = new List<LevelObject>();
+    int selectedLevelIndex = 0;
 
     void Start()
     {
-        //Application.targetFrameRate = 60;
-
         playerInput = GetComponent<PlayerInput>();
         audioManager = GetComponent<Audio_Manager>();
         uiManager = GetComponent<UI_Manager>();
 
+        //Load Level Data        
+       
+
         Init();
     }
 
+    void LoadLevel()
+    {
+        int selectedLevel = PlayerPrefs.GetInt("Level");
+        loadedLevels = SaveSystem.LoadData();      
+
+        for (int i = 0; i < loadedLevels.Count; i++)
+        {
+            if (loadedLevels[i].level == selectedLevel)
+            {
+                selectedLevelIndex = i;
+                break;
+                
+            }
+        }
+
+        print("Selected Level " + selectedLevel);
+    }
+
     void Init()
-    {   
+    {
+
+        LoadLevel();
+       
         spinner.transform.localEulerAngles = spinnerZeroRot;
         isLocking = false;
         isLocked = false;
@@ -88,12 +116,12 @@ public class Game_Manager : MonoBehaviour
         lockStep = 0f;
 
         //Set Level
-        selectedType = Type.Numbers;
-        numbersUsed = Random.Range(4, 6);
-        combinationLength = Random.Range(5, 10);
-        timeStep = 2.0f;  //0.8 hard
+        selectedType = loadedLevels[selectedLevelIndex].type;
+        numbersUsed = loadedLevels[selectedLevelIndex].numbersUsed;
+        combinationLength = loadedLevels[selectedLevelIndex].combinationLength;
+        timeStep = loadedLevels[selectedLevelIndex].timeStep;  //0.8 hard
 
-
+        //print("Combination Length " + combinationLength);
 
         uiManager.Reset();
         DeleteCombinationNumbers();
@@ -159,6 +187,7 @@ public class Game_Manager : MonoBehaviour
 
             lastNumber = randomNumber;
 
+            //print(randomNumber);
             combination.Add(randomNumber);
         }
     }
@@ -187,7 +216,7 @@ public class Game_Manager : MonoBehaviour
             totalTime += timeAdd;
         }
 
-        print("Level Time " + totalTime);
+        //print("Level Time " + totalTime);
         levelTime = totalTime;
 
     }
@@ -347,9 +376,8 @@ public class Game_Manager : MonoBehaviour
         timerRingMat.SetFloat("_FillClock", 1.0f - timeIndex);
 
         if(curTime >= levelTime)
-        {
-            levelEnded = true;
-            uiManager.ShowLoseUI(true);
+        {           
+            Finished(false);
         }
     }
 
@@ -434,8 +462,7 @@ public class Game_Manager : MonoBehaviour
             //All numbers locked in, completed
             if(combinationIndex >= combination.Count)
             {
-                levelEnded = true;
-                uiManager.ShowWinUI(true);
+                Finished(true);
             }
         }
         //Wrong number selected
@@ -463,6 +490,47 @@ public class Game_Manager : MonoBehaviour
         }       
     }
 
+    void Finished(bool success)
+    {
+        levelEnded = true;
+        uiManager.ShowWinUI(success);        
+        uiManager.ShowLoseUI(!success);
+
+        if (success)
+        {
+            loadedLevels[selectedLevelIndex].finished = true;
+            SaveSystem.SaveData(loadedLevels);
+        }
+
+
+        int curDifficulty = PlayerPrefs.GetInt("Difficulty");      
+       /* float timeIndex = curTime / levelTime;
+        timeIndex = Mathf.Clamp01(timeIndex);
+        timeIndex -= 0.6f;
+        timeIndex = Mathf.Clamp01(timeIndex);
+        int reduceValue = Mathf.CeilToInt(timeIndex * 10f);*/
+
+        int finalValue = 0;
+
+        if (success)
+        {
+            finalValue = +3; // - reduceValue;               
+        }
+        else
+        {
+            finalValue = -3;
+        }
+        
+        curDifficulty += finalValue;
+        curDifficulty = Mathf.Clamp(curDifficulty, 0, 100);
+
+        print("Final Value " + finalValue);
+        print("Cur Dif " + curDifficulty);
+
+        PlayerPrefs.SetInt("Difficulty", curDifficulty);
+        
+    }
+
     void ResetSpinnerToZero()
     {
         float goalAngle = 0f;
@@ -486,6 +554,11 @@ public class Game_Manager : MonoBehaviour
     public void RestartGame()
     {
         Init();
+    }
+
+    public void BackToMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
     }
 
     void DeleteCombinationNumbers()
