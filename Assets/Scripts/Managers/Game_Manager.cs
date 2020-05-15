@@ -514,18 +514,18 @@ public class Game_Manager : MonoBehaviour
 
         if (success)
         {
-            finalValue = +3; // - reduceValue;               
+            finalValue = +5; // - reduceValue;               
         }
         else
         {
-            finalValue = -3;
+            finalValue = -5;
         }
         
         curDifficulty += finalValue;
         curDifficulty = Mathf.Clamp(curDifficulty, 0, 100);
 
-        print("Final Value " + finalValue);
-        print("Cur Dif " + curDifficulty);
+        //print("Final Value " + finalValue);
+        //print("Cur Dif " + curDifficulty);
 
         PlayerPrefs.SetInt("Difficulty", curDifficulty);
         

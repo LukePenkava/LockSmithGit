@@ -7,11 +7,11 @@ public static class Helper
     //Level Setup
     public static string[] Types = { "Numbers", "Symbols" };
     public static int minNumbers = 4;
-    public static int maxNumbers = 5; //7
-    public static int minCombinationLength = 3;
-    public static int maxCombinationLength = 5;//11
+    public static int maxNumbers = 6; //7
+    public static int minCombinationLength = 4;
+    public static int maxCombinationLength = 11;//11
     public static float minTimeStep = 0.8f;
-    public static float maxTimeStep = 2.5f;
+    public static float maxTimeStep = 2.0f;
 
 
 

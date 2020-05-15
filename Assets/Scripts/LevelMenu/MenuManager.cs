@@ -130,7 +130,7 @@ public class MenuManager : MonoBehaviour
 
         for (int i = 0; i < levelsToCreate; i++)
         {
-            LevelObject levelObj = CreateLevel(levelsCount + i); 
+            LevelObject levelObj = CreateLevelData(levelsCount + i); 
             levels.Add(levelObj);
         }
 
@@ -151,9 +151,10 @@ public class MenuManager : MonoBehaviour
         SetCurrentLevel();
     }
 
-    LevelObject CreateLevel(int levelIndex)
+    LevelObject CreateLevelData(int levelIndex)
     {
         LevelObject levelObj = new LevelObject();
+        float difIndex = PlayerPrefs.GetInt("Difficulty") / 100f;  //0.0 easy, 1.0 most difficult
 
         //First Level
         if (levelIndex == 0)
@@ -161,16 +162,29 @@ public class MenuManager : MonoBehaviour
             levelObj.level = levelIndex;
             levelObj.type = Helper.Types[0];
             levelObj.numbersUsed = 4;
-            levelObj.combinationLength = 4;
+            levelObj.combinationLength = 3;
             levelObj.timeStep = 3.0f;
         }
         else
         {
             levelObj.level = levelIndex;
+
             levelObj.type = GetRandomType();
-            levelObj.numbersUsed = Random.Range(Helper.minNumbers, Helper.maxNumbers);
-            levelObj.combinationLength = Random.Range(Helper.minCombinationLength, Helper.maxCombinationLength);
-            levelObj.timeStep = Random.Range(Helper.minTimeStep, Helper.maxTimeStep);
+            if(levelIndex < 5) { levelObj.type = Helper.Types[0]; } //Make first few levels numbers
+
+            int maxNumbers = Helper.minNumbers + Mathf.CeilToInt(difIndex * (Helper.maxNumbers - Helper.minNumbers)); 
+            levelObj.numbersUsed = Random.Range(Helper.minNumbers, maxNumbers);
+
+            int minRange = 2; //Provide always some range, otherwise the combination would be for example always only 3 for a long time
+            int maxComb = Helper.minCombinationLength + minRange + Mathf.CeilToInt(difIndex * ((Helper.maxCombinationLength- minRange) - Helper.minCombinationLength));
+            levelObj.combinationLength = Random.Range(Helper.minCombinationLength, maxComb);
+
+            float minStep = Helper.minTimeStep + ((1f - difIndex) * (Helper.maxTimeStep - Helper.minTimeStep));
+            levelObj.timeStep = Random.Range(minStep, minStep + 0.1f);
+
+            print("Difficulty " + PlayerPrefs.GetInt("Difficulty"));
+            print("MaxNumbers " + maxNumbers + " maxComb " + maxComb + " minStep " + minStep);
+            print("NumbersUsed " + levelObj.numbersUsed + " combinationLength " + levelObj.combinationLength + " timeStep " + levelObj.timeStep);
         }
 
         return levelObj;
@@ -181,9 +195,7 @@ public class MenuManager : MonoBehaviour
         //Game_Manager.Type[] types = (Game_Manager.Type[])System.Enum.GetValues(typeof(Game_Manager.Type));
         int typeLength = Helper.Types.Length;
         int rnd = Random.Range(0, typeLength);
-        string rndType = Helper.Types[rnd];
-
-        print(rndType);
+        string rndType = Helper.Types[rnd];       
 
         return rndType;
     }
@@ -208,6 +220,7 @@ public class MenuManager : MonoBehaviour
     public void DeleteSaves()
     {
         SaveSystem.DeleteData();
+        PlayerPrefs.DeleteAll();
     }
 
 }
