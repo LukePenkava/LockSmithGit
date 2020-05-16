@@ -19,10 +19,20 @@ public class MenuManager : MonoBehaviour
     List<LevelObject> levels = new List<LevelObject>();
     int currentLevel = 0;
 
-
-
     void Start()
     {
+        Init();
+    }
+
+    void Init()
+    {
+        foreach(Transform lvl in levelsParent)
+        {
+            Destroy(lvl.gameObject);
+        }
+
+        levels.Clear();
+
         List<LevelObject> data = SaveSystem.LoadData();
         if(data != null)
         {
@@ -169,6 +179,21 @@ public class MenuManager : MonoBehaviour
         {
             levelObj.level = levelIndex;
 
+           
+            int lastAd = PlayerPrefs.GetInt("LastAd");
+            int lastAdDif = levelIndex - lastAd;
+            if(lastAdDif > 3)
+            {
+                int adChance = Random.Range(0, 100);
+                adChance = (adChance - 30) + (lastAdDif * 10); //increase chance with each additional level
+                if(adChance > 45)
+                {
+                    levelObj.isAd = true;
+                    PlayerPrefs.SetInt("LastAd", levelIndex);
+                }
+            }
+            
+
             levelObj.type = GetRandomType();
             if(levelIndex < 5) { levelObj.type = Helper.Types[0]; } //Make first few levels numbers
 
@@ -213,8 +238,17 @@ public class MenuManager : MonoBehaviour
         if (levelData.finished) { return; }
         if(levelData.level != currentLevel) { return; }
 
-        PlayerPrefs.SetInt("Level", levelData.level);
-        SceneManager.LoadScene("GameScene");
+        if(levelData.isAd)
+        {
+            levels[currentLevel].finished = true;
+            SaveSystem.SaveData(levels);
+            Init();
+        }
+        else
+        {
+            PlayerPrefs.SetInt("Level", levelData.level);
+            SceneManager.LoadScene("GameScene");
+        }        
     }
 
     public void DeleteSaves()

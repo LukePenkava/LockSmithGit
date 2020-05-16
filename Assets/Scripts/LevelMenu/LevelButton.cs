@@ -26,6 +26,11 @@ public class LevelButton : MonoBehaviour
         levelData = data;
         visualLevel.GetComponent<Renderer>().material = data.finished ? mat_Finished : mat_Default;
         visualNumber.text = data.level.ToString();
+
+        if (data.isAd)
+        {
+            visualNumber.text = "AD";
+        }
     }
 
     // Update is called once per frame

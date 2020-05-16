@@ -5,6 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class LevelObject 
 {
+    public bool isAd = false;
+
     public int level = 1;
     public string type = "";
     public int numbersUsed = 1;
