@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using GoogleMobileAds.Api;
 
 public class MenuManager : MonoBehaviour
 {
@@ -19,10 +21,64 @@ public class MenuManager : MonoBehaviour
     List<LevelObject> levels = new List<LevelObject>();
     int currentLevel = 0;
 
+    private RewardedAd rewardedAd;
+
     void Start()
     {
+        MobileAds.Initialize(initStatus => { });
+        LoadAdObject();
+
         Init();
+
+
+
+        /*
+         * IRONSOURCE
+        #if UNITY_ANDROID
+                string appKey = "85460dcd";
+        #elif UNITY_IPHONE
+                    string appKey = "c45df3cd";
+        #else
+                string appKey = "unexpected_platform";
+        #endif
+
+        Debug.Log("unity-script: IronSource.Agent.validateIntegration");
+        IronSource.Agent.validateIntegration();      
+        IronSource.Agent.init(appKey); */
     }
+
+    void LoadAdObject()
+    {
+        string adUnitId;
+
+#if UNITY_ANDROID
+            adUnitId = "ca-app-pub-3940256099942544/5224354917";
+#elif UNITY_IPHONE
+            adUnitId = "ca-app-pub-3940256099942544/1712485313";
+#else
+            adUnitId = "unexpected_platform";
+#endif       
+
+        this.rewardedAd = new RewardedAd(adUnitId);
+
+        this.rewardedAd.OnAdLoaded += HandleRewardedAdLoaded;
+        this.rewardedAd.OnAdFailedToLoad += HandleRewardedAdFailedToLoad;
+        this.rewardedAd.OnAdOpening += HandleRewardedAdOpening;
+        this.rewardedAd.OnAdFailedToShow += HandleRewardedAdFailedToShow;
+        this.rewardedAd.OnUserEarnedReward += HandleUserEarnedReward;
+        this.rewardedAd.OnAdClosed += HandleRewardedAdClosed;
+
+        // Create an empty ad request.
+        AdRequest request = new AdRequest.Builder().Build();
+        // Load the rewarded ad with the request.
+        this.rewardedAd.LoadAd(request);
+    }
+
+    /*
+    void OnApplicationPause(bool isPaused)
+    {
+        IronSource.Agent.onApplicationPause(isPaused);
+    }*/
 
     void Init()
     {
@@ -41,6 +97,49 @@ public class MenuManager : MonoBehaviour
        
         CreateLevels();  
     }
+
+    #region Ads
+
+
+    public void HandleRewardedAdLoaded(object sender, EventArgs args)
+    {
+        Debug.Log("Ad Loaded");
+    }
+
+    public void HandleRewardedAdFailedToLoad(object sender, AdErrorEventArgs args)
+    {
+        Debug.Log("Ad Failed to load " + args.Message);
+        AdFinished();
+    }
+
+    public void HandleRewardedAdOpening(object sender, EventArgs args)
+    {
+        Debug.Log("Ad Opened");
+    }
+
+    public void HandleRewardedAdFailedToShow(object sender, AdErrorEventArgs args)
+    {
+        Debug.Log("Ad Failed to Open " + args.Message);
+        AdFinished();
+    }
+
+    public void HandleRewardedAdClosed(object sender, EventArgs args)
+    {
+        Debug.Log("Ad Closed");
+        //Have to load new ad object to be able to display new ad
+        LoadAdObject();
+    }
+
+    public void HandleUserEarnedReward(object sender, Reward args)
+    {
+        string type = args.Type;
+        double amount = args.Amount;
+        Debug.Log("Ad Finished " + amount.ToString() + " " + type);
+
+        AdFinished();
+    }  
+
+    #endregion
 
 
     void Update()
@@ -184,7 +283,7 @@ public class MenuManager : MonoBehaviour
             int lastAdDif = levelIndex - lastAd;
             if(lastAdDif > 3)
             {
-                int adChance = Random.Range(0, 100);
+                int adChance = UnityEngine.Random.Range(0, 100);
                 adChance = (adChance - 30) + (lastAdDif * 10); //increase chance with each additional level
                 if(adChance > 45)
                 {
@@ -198,18 +297,18 @@ public class MenuManager : MonoBehaviour
             if(levelIndex < 5) { levelObj.type = Helper.Types[0]; } //Make first few levels numbers
 
             int maxNumbers = Helper.minNumbers + Mathf.CeilToInt(difIndex * (Helper.maxNumbers - Helper.minNumbers)); 
-            levelObj.numbersUsed = Random.Range(Helper.minNumbers, maxNumbers);
+            levelObj.numbersUsed = UnityEngine.Random.Range(Helper.minNumbers, maxNumbers);
 
             int minRange = 2; //Provide always some range, otherwise the combination would be for example always only 3 for a long time
             int maxComb = Helper.minCombinationLength + minRange + Mathf.CeilToInt(difIndex * ((Helper.maxCombinationLength- minRange) - Helper.minCombinationLength));
-            levelObj.combinationLength = Random.Range(Helper.minCombinationLength, maxComb);
+            levelObj.combinationLength = UnityEngine.Random.Range(Helper.minCombinationLength, maxComb);
 
             float minStep = Helper.minTimeStep + ((1f - difIndex) * (Helper.maxTimeStep - Helper.minTimeStep));
-            levelObj.timeStep = Random.Range(minStep, minStep + 0.1f);
+            levelObj.timeStep = UnityEngine.Random.Range(minStep, minStep + 0.1f);
 
-            print("Difficulty " + PlayerPrefs.GetInt("Difficulty"));
+            /*print("Difficulty " + PlayerPrefs.GetInt("Difficulty"));
             print("MaxNumbers " + maxNumbers + " maxComb " + maxComb + " minStep " + minStep);
-            print("NumbersUsed " + levelObj.numbersUsed + " combinationLength " + levelObj.combinationLength + " timeStep " + levelObj.timeStep);
+            print("NumbersUsed " + levelObj.numbersUsed + " combinationLength " + levelObj.combinationLength + " timeStep " + levelObj.timeStep);*/
         }
 
         return levelObj;
@@ -219,7 +318,7 @@ public class MenuManager : MonoBehaviour
     {
         //Game_Manager.Type[] types = (Game_Manager.Type[])System.Enum.GetValues(typeof(Game_Manager.Type));
         int typeLength = Helper.Types.Length;
-        int rnd = Random.Range(0, typeLength);
+        int rnd = UnityEngine.Random.Range(0, typeLength);
         string rndType = Helper.Types[rnd];       
 
         return rndType;
@@ -240,15 +339,42 @@ public class MenuManager : MonoBehaviour
 
         if(levelData.isAd)
         {
-            levels[currentLevel].finished = true;
-            SaveSystem.SaveData(levels);
-            Init();
+            if (this.rewardedAd.IsLoaded())
+            {
+                this.rewardedAd.Show();
+            }
+            else
+            {
+                AdFinished();
+            }
+
+            /*
+            Debug.Log("unity-script: ShowRewardedVideoButtonClicked");
+            if (IronSource.Agent.isRewardedVideoAvailable())
+            {
+                IronSource.Agent.showRewardedVideo();
+            }
+            else
+            {
+                Debug.Log("unity-script: IronSource.Agent.isRewardedVideoAvailable - False");
+            }*/           
         }
         else
         {
             PlayerPrefs.SetInt("Level", levelData.level);
             SceneManager.LoadScene("GameScene");
         }        
+    }
+
+    void AdFinished()
+    {
+        Debug.Log("Current Level " + currentLevel);
+        if (levels[currentLevel].isAd)
+        {
+            levels[currentLevel].finished = true;
+            SaveSystem.SaveData(levels);
+            Init();
+        }
     }
 
     public void DeleteSaves()

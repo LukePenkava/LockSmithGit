@@ -98,7 +98,7 @@ public class Game_Manager : MonoBehaviour
             }
         }
 
-        print("Selected Level " + selectedLevel);
+        Debug.Log("Selected Level " + selectedLevel);
     }
 
     void Init()
