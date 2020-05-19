@@ -106,7 +106,7 @@ public class Gear : MonoBehaviour
 
         while (val > 0f)
         {
-            val -= (Time.deltaTime * 0.5f);
+            val -= (Time.deltaTime * 0.75f);
 
             if(val < 0f)
             {

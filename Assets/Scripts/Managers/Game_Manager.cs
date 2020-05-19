@@ -72,6 +72,20 @@ public class Game_Manager : MonoBehaviour
     List<LevelObject> loadedLevels = new List<LevelObject>();
     int selectedLevelIndex = 0;
 
+    public Material goldMat;
+    public Material greymat;
+
+    //Tutorial
+    bool isTutorial = false;
+    int tutorialIndex = 0;
+    int[] tutorialIndexes = { 1, 2, 1, 3, 0, 1, 3, 1 };
+    bool[] tutorialStates = { true, false, true, true, false, true, true, true };
+    public GameObject tutorialIndicator;
+    public GameObject bigCheckmarkGreen;
+    public GameObject bigCheckmarkRed;
+    int checkIndex = 0;
+    public GameObject[] greenNumbers;
+
 
     public Text debugLog;
 
@@ -82,9 +96,13 @@ public class Game_Manager : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
         audioManager = GetComponent<Audio_Manager>();
         uiManager = GetComponent<UI_Manager>();
+        tutorialIndicator.SetActive(false);
+        bigCheckmarkGreen.SetActive(false);
+        bigCheckmarkRed.SetActive(false);
+        foreach(GameObject check in greenNumbers) { check.SetActive(false); }
 
         //Load Level Data        
-       
+
 
         Init();        
     }
@@ -92,6 +110,8 @@ public class Game_Manager : MonoBehaviour
     void LoadLevel()
     {
         int selectedLevel = PlayerPrefs.GetInt("Level");
+        //selectedLevel = 0;
+
         loadedLevels = SaveSystem.LoadData();      
 
         for (int i = 0; i < loadedLevels.Count; i++)
@@ -127,6 +147,13 @@ public class Game_Manager : MonoBehaviour
         combinationLength = loadedLevels[selectedLevelIndex].combinationLength;
         timeStep = loadedLevels[selectedLevelIndex].timeStep;  //0.8 hard
 
+        if(selectedLevelIndex == 0)
+        {
+            isTutorial = true;
+            combinationLength = 4;
+           
+        }
+
         int curDifficulty = PlayerPrefs.GetInt("Difficulty");
         debugLog.text = "Dif " + curDifficulty + " TimeStep " + timeStep;
 
@@ -147,6 +174,20 @@ public class Game_Manager : MonoBehaviour
         timerRingMat.SetFloat("_FillClock", 1.0f);
         curTime = 0f;     
         CalculateLevelTime();
+
+        if(isTutorial)
+        {
+            SetTutorialIndicator();
+        }
+
+    }
+
+    void SetTutorialIndicator()
+    {
+        int curNumber = tutorialIndexes[tutorialIndex];
+        Vector3 pos = circleNumbers[curNumber].obj.transform.localPosition;
+        tutorialIndicator.transform.localPosition = new Vector3(pos.x, pos.y, -0.16f);
+        tutorialIndicator.SetActive(true);
     }
 
     void Update()
@@ -198,6 +239,14 @@ public class Game_Manager : MonoBehaviour
 
             //print(randomNumber);
             combination.Add(randomNumber);
+        }
+
+        if(isTutorial)
+        {
+            combination.Clear();
+            combination.Add(1);
+            combination.Add(3);
+            combination.Add(1);
         }
     }
 
@@ -360,6 +409,20 @@ public class Game_Manager : MonoBehaviour
 
     public void NumberSelected(int index)
     {
+        if(isTutorial)
+        {
+            if(index != tutorialIndexes[tutorialIndex])
+            {
+                return;
+            }
+            else
+            {
+                tutorialIndicator.SetActive(false);
+                bigCheckmarkGreen.SetActive(false);
+                bigCheckmarkRed.SetActive(false);
+            }
+        }
+
         //print("isLocking " + isLocking + " combinationCompleted " + combinationCompleted);
         //print("index " + index + " lastLocked " + lastLockedNumber);
         if (isLocking || levelEnded) { return; }
@@ -376,6 +439,7 @@ public class Game_Manager : MonoBehaviour
     void Timer()
     {
         if(levelEnded) { return; }
+        if(isTutorial) { return; }
 
         curTime += Time.deltaTime;
         float timeIndex = curTime / levelTime;
@@ -420,7 +484,7 @@ public class Game_Manager : MonoBehaviour
     void LockNumber()
     {     
         if(isLocking && !isLocked)
-        {
+        {         
             //Invert spinner angle to match angles of numbers
             float spinAngle = spinner.transform.localEulerAngles.z;               
             float numberEuler = closeNumber.angle;
@@ -439,10 +503,39 @@ public class Game_Manager : MonoBehaviour
             if (delta < lockDistance)
             {
                 isLocking = false;
-                isLocked = true;
+                isLocked = true;              
                 lastLockedNumber = closeNumber.number;               
-                closeNumber.script.Locked();                                   
+                closeNumber.script.Locked();
 
+                if (isTutorial)
+                {
+                    if(tutorialStates[tutorialIndex])
+                    {
+                        bigCheckmarkGreen.SetActive(true);
+                        bigCheckmarkRed.SetActive(false);
+
+                        greenNumbers[checkIndex].SetActive(true);
+                        checkIndex++;
+                    }
+                    else
+                    {
+                        bigCheckmarkGreen.SetActive(false);
+                        bigCheckmarkRed.SetActive(true);
+                        foreach(GameObject check in greenNumbers)
+                        {
+                            checkIndex = 0;
+                            check.SetActive(false);
+                        }
+                    }
+
+                    tutorialIndex++;                   
+
+                    if (tutorialIndex < tutorialStates.Length)
+                    {
+                        SetTutorialIndicator();
+                    }
+                }
+               
                 //Auto rotation finished, locked spinner at exact angle of the number ( again inverted from the number )
                 spinner.transform.localEulerAngles = new Vector3(spinner.transform.localEulerAngles.x, spinner.transform.localEulerAngles.y, /*360f - */closeNumber.angle);       
 
@@ -560,7 +653,7 @@ public class Game_Manager : MonoBehaviour
 
     IEnumerator BackToMenuCor()
     {
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(2.0f);
         BackToMenu();
     }
 
