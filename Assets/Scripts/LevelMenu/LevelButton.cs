@@ -7,10 +7,20 @@ public class LevelButton : MonoBehaviour
 {
     MenuManager menuManager;
     public GameObject visualLevel;
-    public TextMeshPro visualNumber;
+    public GameObject visualAd;
+    public GameObject visualNumber;
 
-    public Material mat_Default;
-    public Material mat_Finished;
+    public Color activeColor;
+    public Color defaultColor;
+
+    public Sprite levelActiveSprite;
+    public Sprite levelDefaultSprite;
+    public Material grey;
+    public Material gold;
+    public Material goldAd;
+   
+
+    public Material fontDarkMat;
 
     LevelObject levelData;
     public LevelObject LevelData
@@ -24,12 +34,31 @@ public class LevelButton : MonoBehaviour
     {
         menuManager = script;
         levelData = data;
-        visualLevel.GetComponent<Renderer>().material = data.finished ? mat_Finished : mat_Default;
-        visualNumber.text = data.level.ToString();
+        //visualNumber.color = data.finished ? defaultColor : activeColor;
+        visualNumber.GetComponent<TextMeshPro>().text = data.level.ToString();
+        if(menuManager.CurrentLevel == data.level)
+        {
+            //visualLevel.GetComponent<SpriteRenderer>().sprite = levelActiveSprite;
+            visualLevel.GetComponent<SpriteRenderer>().material = gold;
+            visualAd.GetComponent<Renderer>().material = goldAd;
+        }
+        else
+        {
+            visualLevel.GetComponent<SpriteRenderer>().sprite = levelActiveSprite;
+            visualLevel.GetComponent<SpriteRenderer>().material = grey;
+            visualNumber.gameObject.GetComponent<Renderer>().material = fontDarkMat;
+            visualAd.GetComponent<Renderer>().material = grey;
+        }
 
         if (data.isAd)
         {
-            visualNumber.text = "AD";
+            visualNumber.SetActive(false);
+            visualAd.SetActive(true);
+        }
+        else
+        {
+            visualNumber.SetActive(true);
+            visualAd.SetActive(false);
         }
     }
 

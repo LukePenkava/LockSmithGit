@@ -11,7 +11,7 @@ public static class Helper
     public static int minCombinationLength = 4;
     public static int maxCombinationLength = 11;//11
     public static float minTimeStep = 0.8f;
-    public static float maxTimeStep = 1.6f;
+    public static float maxTimeStep = 1.4f;
 
 
 

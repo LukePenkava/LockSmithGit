@@ -91,4 +91,33 @@ public class Gear : MonoBehaviour
         gear.transform.Rotate(rot);
         */
     }
+
+    public void CenterGear()
+    {
+        StartCoroutine("Center");
+    }
+
+    IEnumerator Center()
+    {
+        float val = 1.0f;
+        float gearX = gear.transform.localPosition.x;
+        float legScaleX = leg.transform.localScale.x;
+        float axisX = gearAxis.transform.localPosition.x;
+
+        while (val > 0f)
+        {
+            val -= (Time.deltaTime * 0.5f);
+
+            if(val < 0f)
+            {
+                val = 0f;
+            }
+
+            gear.transform.localPosition = new Vector3(gearX * val, gear.transform.localPosition.y, gear.transform.localPosition.z);
+            leg.transform.localScale = new Vector3(legScaleX * val, leg.transform.localScale.y, leg.transform.localScale.z);
+            gearAxis.transform.localPosition = new Vector3(axisX * val, gearAxis.transform.localPosition.y, gearAxis.transform.localPosition.z);
+
+            yield return null;
+        }
+    }
 }

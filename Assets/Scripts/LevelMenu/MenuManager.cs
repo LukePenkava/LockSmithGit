@@ -4,81 +4,45 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using GoogleMobileAds.Api;
+using GoogleMobileAds.Common;
+
 
 public class MenuManager : MonoBehaviour
 {
+    Ads_Manager adsManager;
+
     public Camera cam;
     public GameObject levelPrefab;
     public Transform levelsParent;
-   
-    float scrollSpeed = 0.2f;
-    float totalDelta = 0f;
-    float levelStep = 3.0f;
+    public GameObject futureLevelPrefab;
+    public GameObject linePrefab;
 
+    float targetY = 0f;
+    float scrollSpeed = 0.4f;
+    float totalDelta = 0f;
+    float levelStep = 4.0f;
+
+    
     float scrollVelocity;
     float smoothedScroll = 0f;
 
+    public Sprite[] futureLevelSprites;
+
     List<LevelObject> levels = new List<LevelObject>();
     int currentLevel = 0;
+    public int CurrentLevel
+    {
+        get { return currentLevel; }
+    }
 
     private RewardedAd rewardedAd;
 
     void Start()
     {
-        MobileAds.Initialize(initStatus => { });
-        LoadAdObject();
+        adsManager = GetComponent<Ads_Manager>();
 
         Init();
-
-
-
-        /*
-         * IRONSOURCE
-        #if UNITY_ANDROID
-                string appKey = "85460dcd";
-        #elif UNITY_IPHONE
-                    string appKey = "c45df3cd";
-        #else
-                string appKey = "unexpected_platform";
-        #endif
-
-        Debug.Log("unity-script: IronSource.Agent.validateIntegration");
-        IronSource.Agent.validateIntegration();      
-        IronSource.Agent.init(appKey); */
-    }
-
-    void LoadAdObject()
-    {
-        string adUnitId;
-
-#if UNITY_ANDROID
-            adUnitId = "ca-app-pub-3940256099942544/5224354917";
-#elif UNITY_IPHONE
-            adUnitId = "ca-app-pub-3940256099942544/1712485313";
-#else
-            adUnitId = "unexpected_platform";
-#endif       
-
-        this.rewardedAd = new RewardedAd(adUnitId);
-
-        this.rewardedAd.OnAdLoaded += HandleRewardedAdLoaded;
-        this.rewardedAd.OnAdFailedToLoad += HandleRewardedAdFailedToLoad;
-        this.rewardedAd.OnAdOpening += HandleRewardedAdOpening;
-        this.rewardedAd.OnAdFailedToShow += HandleRewardedAdFailedToShow;
-        this.rewardedAd.OnUserEarnedReward += HandleUserEarnedReward;
-        this.rewardedAd.OnAdClosed += HandleRewardedAdClosed;
-
-        // Create an empty ad request.
-        AdRequest request = new AdRequest.Builder().Build();
-        // Load the rewarded ad with the request.
-        this.rewardedAd.LoadAd(request);
-    }
-
-    /*
-    void OnApplicationPause(bool isPaused)
-    {
-        IronSource.Agent.onApplicationPause(isPaused);
-    }*/
+    }  
 
     void Init()
     {
@@ -98,49 +62,6 @@ public class MenuManager : MonoBehaviour
         CreateLevels();  
     }
 
-    #region Ads
-
-
-    public void HandleRewardedAdLoaded(object sender, EventArgs args)
-    {
-        Debug.Log("Ad Loaded");
-    }
-
-    public void HandleRewardedAdFailedToLoad(object sender, AdErrorEventArgs args)
-    {
-        Debug.Log("Ad Failed to load " + args.Message);
-        AdFinished();
-    }
-
-    public void HandleRewardedAdOpening(object sender, EventArgs args)
-    {
-        Debug.Log("Ad Opened");
-    }
-
-    public void HandleRewardedAdFailedToShow(object sender, AdErrorEventArgs args)
-    {
-        Debug.Log("Ad Failed to Open " + args.Message);
-        AdFinished();
-    }
-
-    public void HandleRewardedAdClosed(object sender, EventArgs args)
-    {
-        Debug.Log("Ad Closed");
-        //Have to load new ad object to be able to display new ad
-        LoadAdObject();
-    }
-
-    public void HandleUserEarnedReward(object sender, Reward args)
-    {
-        string type = args.Type;
-        double amount = args.Amount;
-        Debug.Log("Ad Finished " + amount.ToString() + " " + type);
-
-        AdFinished();
-    }  
-
-    #endregion
-
 
     void Update()
     {
@@ -158,20 +79,19 @@ public class MenuManager : MonoBehaviour
 
             if (touch.phase == TouchPhase.Began)
             {
-                totalDelta = 0f;
+                totalDelta = 0f;             
             }
             else if (touch.phase == TouchPhase.Moved)
             {
                 float delta = touch.deltaPosition.y;
 
                 //Used for recognizing swipe from tap
-                totalDelta += Mathf.Abs(delta); 
-
-                scrollValue = delta * Time.deltaTime * scrollSpeed;               
+                totalDelta += Mathf.Abs(delta);               
+                scrollValue = delta * Time.deltaTime * scrollSpeed;              
 
             }
             if (touch.phase == TouchPhase.Ended)
-            {
+            {    
                 //Dont register selection if player was swiping
                 if (Mathf.Abs(totalDelta) < 1.0f)
                 {
@@ -188,9 +108,28 @@ public class MenuManager : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            float mod = levelsParent.transform.localPosition.y % levelStep;
+
+            if (Mathf.Abs(mod) > levelStep / 2f)
+            {
+                mod = (levelStep * -1) - mod;
+                scrollValue = mod * Time.deltaTime * scrollSpeed * 20f;
+            }
+            else
+            {
+                scrollValue = mod * -1f * Time.deltaTime * scrollSpeed * 20f;
+            }
+        }
 
         //Smoothed Scrolling, has to be outside of touch to have the smoothed effect even after player lifts finger, so it slows down
-        smoothedScroll = Mathf.SmoothDamp(smoothedScroll, scrollValue, ref scrollVelocity, 0.15f);
+        smoothedScroll = Mathf.SmoothDamp(smoothedScroll, scrollValue, ref scrollVelocity, 0.35f);
+        //smoothedScroll = Mathf.Lerp(smoothedScroll, scrollValue, 1.0f * Time.deltaTime);
+        if(Mathf.Abs(smoothedScroll) > Mathf.Abs(scrollValue))
+        {
+            smoothedScroll = scrollValue;
+        }        
 
         //Limit swiping, so that player does not swipe under first level ( posY = 0 is limit, cant be higher value )
         float movedPos = levelsParent.transform.localPosition.y + smoothedScroll;
@@ -202,7 +141,7 @@ public class MenuManager : MonoBehaviour
             smoothedScroll -= movedPos;
         }
 
-        float lowLimit = ((levels.Count - 1) * levelStep * -1f);
+        float lowLimit = (( (levels.Count + 3) - 1) * levelStep * -1f);
         if (movedPos < lowLimit)
         {
             float dif = movedPos - lowLimit;
@@ -210,7 +149,6 @@ public class MenuManager : MonoBehaviour
         }
 
         levelsParent.transform.Translate(Vector3.up * smoothedScroll);
-
     }
 
 
@@ -233,7 +171,7 @@ public class MenuManager : MonoBehaviour
         currentLevel = finishedLevels;
 
         //Always have +2 levels to last finished one, current one and next one player will playe after visible, to see there is something after current level
-        int levelsToCreate = 2 - (levels.Count - finishedLevels);
+        int levelsToCreate = 1 - (levels.Count - finishedLevels);
         //Have to store before, or the index would change in the loop as objects are added and level index would be messed up
         int levelsCount = levels.Count; 
 
@@ -252,10 +190,31 @@ public class MenuManager : MonoBehaviour
             GameObject levelGO = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
             levelGO.name = "Level" + i.ToString();
             levelGO.transform.parent = levelsParent;
-            levelGO.transform.localPosition = new Vector3(0, i * levelStep, 0);
+            levelGO.transform.localPosition = new Vector3(0, i * levelStep, -0.2f);
 
             levelGO.GetComponent<LevelButton>().Init(levels[i], this);      
         }
+
+        int tempI = 0;
+        for(int i = levels.Count; i < levels.Count + 2; i++)
+        {
+            GameObject futureLevel = Instantiate(futureLevelPrefab, Vector3.zero, Quaternion.identity);
+            futureLevel.name = "FutureLevel" + i.ToString();
+            futureLevel.transform.parent = levelsParent;
+            futureLevel.transform.localPosition = new Vector3(0, i * levelStep, -0.2f);
+            futureLevel.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = futureLevelSprites[tempI];
+            tempI++;
+        }
+
+        /*
+        for(int i = 0; i < levels.Count + 2; i++)
+        {
+            GameObject lineGO = Instantiate(linePrefab, Vector3.zero, Quaternion.identity);
+            lineGO.name = "Line" + i.ToString();
+            lineGO.transform.parent = levelsParent;
+            lineGO.transform.localPosition = new Vector3(0, (levelStep * 0.5f) + (i * levelStep) + (levelStep * 0.12f), -0.1f);
+            lineGO.transform.localScale = new Vector3(0.25f, 0.25f, 0.35f);
+        }*/
 
         SetCurrentLevel();
     }
@@ -277,7 +236,6 @@ public class MenuManager : MonoBehaviour
         else
         {
             levelObj.level = levelIndex;
-
            
             int lastAd = PlayerPrefs.GetInt("LastAd");
             int lastAdDif = levelIndex - lastAd;
@@ -290,8 +248,7 @@ public class MenuManager : MonoBehaviour
                     levelObj.isAd = true;
                     PlayerPrefs.SetInt("LastAd", levelIndex);
                 }
-            }
-            
+            }            
 
             levelObj.type = GetRandomType();
             if(levelIndex < 5) { levelObj.type = Helper.Types[0]; } //Make first few levels numbers
@@ -339,25 +296,14 @@ public class MenuManager : MonoBehaviour
 
         if(levelData.isAd)
         {
-            if (this.rewardedAd.IsLoaded())
-            {
-                this.rewardedAd.Show();
-            }
-            else
+            if (Application.isEditor)
             {
                 AdFinished();
             }
-
-            /*
-            Debug.Log("unity-script: ShowRewardedVideoButtonClicked");
-            if (IronSource.Agent.isRewardedVideoAvailable())
-            {
-                IronSource.Agent.showRewardedVideo();
-            }
             else
             {
-                Debug.Log("unity-script: IronSource.Agent.isRewardedVideoAvailable - False");
-            }*/           
+                adsManager.ShowRewardedAd();
+            }
         }
         else
         {
@@ -366,9 +312,8 @@ public class MenuManager : MonoBehaviour
         }        
     }
 
-    void AdFinished()
+    public void AdFinished()
     {
-        Debug.Log("Current Level " + currentLevel);
         if (levels[currentLevel].isAd)
         {
             levels[currentLevel].finished = true;

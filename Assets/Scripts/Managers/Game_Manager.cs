@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Game_Manager : MonoBehaviour
 {
@@ -71,6 +72,11 @@ public class Game_Manager : MonoBehaviour
     List<LevelObject> loadedLevels = new List<LevelObject>();
     int selectedLevelIndex = 0;
 
+
+    public Text debugLog;
+
+
+
     void Start()
     {
         playerInput = GetComponent<PlayerInput>();
@@ -80,7 +86,7 @@ public class Game_Manager : MonoBehaviour
         //Load Level Data        
        
 
-        Init();
+        Init();        
     }
 
     void LoadLevel()
@@ -120,6 +126,9 @@ public class Game_Manager : MonoBehaviour
         numbersUsed = loadedLevels[selectedLevelIndex].numbersUsed;
         combinationLength = loadedLevels[selectedLevelIndex].combinationLength;
         timeStep = loadedLevels[selectedLevelIndex].timeStep;  //0.8 hard
+
+        int curDifficulty = PlayerPrefs.GetInt("Difficulty");
+        debugLog.text = "Dif " + curDifficulty + " TimeStep " + timeStep;
 
         //print("Combination Length " + combinationLength);
 
@@ -493,41 +502,34 @@ public class Game_Manager : MonoBehaviour
     void Finished(bool success)
     {
         levelEnded = true;
-        uiManager.ShowWinUI(success);        
-        uiManager.ShowLoseUI(!success);
+        //uiManager.ShowWinUI(success);        
+        //uiManager.ShowLoseUI(!success);
 
         if (success)
         {
             loadedLevels[selectedLevelIndex].finished = true;
             SaveSystem.SaveData(loadedLevels);
+            CenterGears();
         }
 
-
-        int curDifficulty = PlayerPrefs.GetInt("Difficulty");      
-       /* float timeIndex = curTime / levelTime;
-        timeIndex = Mathf.Clamp01(timeIndex);
-        timeIndex -= 0.6f;
-        timeIndex = Mathf.Clamp01(timeIndex);
-        int reduceValue = Mathf.CeilToInt(timeIndex * 10f);*/
+        int curDifficulty = PlayerPrefs.GetInt("Difficulty");        
 
         int finalValue = 0;
 
         if (success)
         {
-            finalValue = +5; // - reduceValue;               
+            finalValue = +7;            
         }
         else
         {
-            finalValue = -5;
+            finalValue = -15;
         }
         
         curDifficulty += finalValue;
         curDifficulty = Mathf.Clamp(curDifficulty, 0, 100);
 
-        //print("Final Value " + finalValue);
-        //print("Cur Dif " + curDifficulty);
-
         PlayerPrefs.SetInt("Difficulty", curDifficulty);
+        StartCoroutine(BackToMenuCor());
         
     }
 
@@ -554,6 +556,12 @@ public class Game_Manager : MonoBehaviour
     public void RestartGame()
     {
         Init();
+    }
+
+    IEnumerator BackToMenuCor()
+    {
+        yield return new WaitForSeconds(3.0f);
+        BackToMenu();
     }
 
     public void BackToMenu()
@@ -589,6 +597,14 @@ public class Game_Manager : MonoBehaviour
         }
 
         gearsList.Clear();
+    }
+
+    void CenterGears()
+    {
+        foreach(GearObject gear in gearsList)
+        {
+            gear.script.CenterGear();
+        }
     }
 
     #endregion
