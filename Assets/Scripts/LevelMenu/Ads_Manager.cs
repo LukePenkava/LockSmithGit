@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
+using UnityEngine.Analytics;
+using UnityEngine.SceneManagement;
 
 public class Ads_Manager : MonoBehaviour
 {
@@ -19,11 +21,14 @@ public class Ads_Manager : MonoBehaviour
 
     void Start()
     {
-        if(Application.isEditor) { return; }
+        DontDestroyOnLoad(this.gameObject);
+
+
+        if (Application.isEditor) { return; }
 
         menuManager = GetComponent<MenuManager>();
 
-        MobileAds.SetiOSAppPauseOnBackground(true);
+        MobileAds.SetiOSAppPauseOnBackground(true);        
 
         List<string> deviceIds = new List<string>() { AdRequest.TestDeviceSimulator };
 
@@ -45,6 +50,14 @@ public class Ads_Manager : MonoBehaviour
 
         // Initialize the Google Mobile Ads SDK.
         MobileAds.Initialize(HandleInitCompleteAction);
+
+        StartCoroutine("WaitToLoad");
+    }
+
+    IEnumerator WaitToLoad()
+    {
+        yield return new WaitForSeconds(1.5f);
+        SceneManager.LoadScene("MenuScene");
     }
 
     void HandleInitCompleteAction(InitializationStatus initstatus)
@@ -92,6 +105,7 @@ public class Ads_Manager : MonoBehaviour
         rewardedAd.OnAdClosed += HandleRewardedAdClosed;
 
         // Create empty ad request
+        //Debug.Log("Ad Loading Called " + Time.time);
         rewardedAd.LoadAd(CreateAdRequest());
     }
 
@@ -99,15 +113,15 @@ public class Ads_Manager : MonoBehaviour
 
 
     public void ShowRewardedAd()
-    {
-        if (rewardedAd != null)
+    {        
+        if (rewardedAd != null && rewardedAd.IsLoaded())
         {
             rewardedAd.Show();
         }
         else
         {
-            Debug.Log("Rewarded ad is NULL");
-            menuManager.AdFinished();
+            Debug.Log("Didnt Show Ad");
+            //menuManager.AdFinished();
         }
     }
 
@@ -123,17 +137,20 @@ public class Ads_Manager : MonoBehaviour
     public void HandleRewardedAdFailedToLoad(object sender, AdErrorEventArgs args)
     {
         Debug.Log("Ad Failed to load " + args.Message);
+        Analytics.CustomEvent("AdFailedToLoad");
         menuManager.AdFinished();
     }
 
     public void HandleRewardedAdOpening(object sender, EventArgs args)
     {
         Debug.Log("Ad Opened");
+        Analytics.CustomEvent("AdOpened");
     }
 
     public void HandleRewardedAdFailedToShow(object sender, AdErrorEventArgs args)
     {
         Debug.Log("Ad Failed to Open " + args.Message);
+        Analytics.CustomEvent("AdFailedToShow");
         menuManager.AdFinished();
     }
 
@@ -141,6 +158,7 @@ public class Ads_Manager : MonoBehaviour
     {
         Debug.Log("Ad Closed");
         //Have to load new ad object to be able to display new ad
+        Analytics.CustomEvent("AdClosed");
         RequestAndLoadRewardedAd();
     }
 
@@ -149,8 +167,18 @@ public class Ads_Manager : MonoBehaviour
         string type = args.Type;
         double amount = args.Amount;
         Debug.Log("Ad Finished " + amount.ToString() + " " + type);
+        Analytics.CustomEvent("AdFinished");
 
-        menuManager.AdFinished();
+        GameObject menuGO = GameObject.FindGameObjectWithTag("MenuManager");
+
+        if (menuGO)
+        {
+            menuGO.GetComponent<MenuManager>().AdFinished();
+        }
+        else
+        {
+            Debug.Log("Could not find Menu Manager");
+        }
     }
 
     #endregion

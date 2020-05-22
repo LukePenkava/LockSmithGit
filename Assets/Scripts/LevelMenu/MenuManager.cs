@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
+using UnityEngine.Analytics;
 
 
 public class MenuManager : MonoBehaviour
@@ -39,7 +40,13 @@ public class MenuManager : MonoBehaviour
 
     void Start()
     {
-        adsManager = GetComponent<Ads_Manager>();
+        GameObject adsManagerGO = GameObject.FindGameObjectWithTag("AdManager");
+
+        if(adsManagerGO)
+        {
+            adsManager = adsManagerGO.GetComponent<Ads_Manager>();
+        }
+
 
         Init();
     }  
@@ -307,6 +314,11 @@ public class MenuManager : MonoBehaviour
         }
         else
         {
+            Analytics.CustomEvent("LevelSelected", new Dictionary<string, object>
+            {
+                { "LevelIndex", levelData.level }
+            });
+
             PlayerPrefs.SetInt("Level", levelData.level);
             SceneManager.LoadScene("GameScene");
         }        

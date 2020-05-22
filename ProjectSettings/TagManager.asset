@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Number
   - Level
+  - AdManager
+  - MenuManager
   layers:
   - Default
   - TransparentFX

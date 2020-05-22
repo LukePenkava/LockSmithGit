@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Analytics;
 
 public class Game_Manager : MonoBehaviour
 {
@@ -87,6 +88,7 @@ public class Game_Manager : MonoBehaviour
     public GameObject[] greenNumbers;
 
 
+    bool debugOn = false;
     public Text debugLog;
 
 
@@ -101,7 +103,7 @@ public class Game_Manager : MonoBehaviour
         bigCheckmarkRed.SetActive(false);
         foreach(GameObject check in greenNumbers) { check.SetActive(false); }
 
-        //Load Level Data        
+        debugLog.gameObject.SetActive(debugOn);     
 
 
         Init();        
@@ -603,6 +605,40 @@ public class Game_Manager : MonoBehaviour
             loadedLevels[selectedLevelIndex].finished = true;
             SaveSystem.SaveData(loadedLevels);
             CenterGears();
+
+            if (isTutorial)
+            {
+                Analytics.CustomEvent("TutorialCompleted");
+            }
+            else
+            {
+                Analytics.CustomEvent("LevelCompleted", new Dictionary<string, object>
+                {
+                    { "Index", loadedLevels[selectedLevelIndex].level },
+                    { "Length", loadedLevels[selectedLevelIndex].combinationLength },
+                    { "NumbersUsed", loadedLevels[selectedLevelIndex].numbersUsed },
+                    { "TimeStep", loadedLevels[selectedLevelIndex].timeStep },
+                    { "Type", loadedLevels[selectedLevelIndex].type }
+                });
+            }
+        }
+        else
+        {
+            if (isTutorial)
+            {
+                Analytics.CustomEvent("TutorialFailed");
+            }
+            else
+            {
+                Analytics.CustomEvent("LevelFailed", new Dictionary<string, object>
+                {
+                    { "Index", loadedLevels[selectedLevelIndex].level },
+                    { "Length", loadedLevels[selectedLevelIndex].combinationLength },
+                    { "NumbersUsed", loadedLevels[selectedLevelIndex].numbersUsed },
+                    { "TimeStep", loadedLevels[selectedLevelIndex].timeStep },
+                    { "Type", loadedLevels[selectedLevelIndex].type }
+                });
+            }
         }
 
         int curDifficulty = PlayerPrefs.GetInt("Difficulty");        
