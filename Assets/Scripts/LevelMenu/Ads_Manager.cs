@@ -15,7 +15,9 @@ public class Ads_Manager : MonoBehaviour
 
     string testDeviceId_iOS = "63f69b14516e82df33cc2eced3e8cc1c";
     string testAdId_iOS = "ca-app-pub-3940256099942544/1712485313";
+
     string idAd_iOS = "ca-app-pub-8891462778088936/4527428711";
+    string idAd_Android = "ca-app-pub-8891462778088936/2004179485";
 
     #region Init
 
@@ -86,7 +88,7 @@ public class Ads_Manager : MonoBehaviour
 #if UNITY_EDITOR
         string adUnitId = "unused";
 #elif UNITY_ANDROID
-        string adUnitId = "ca-app-pub-3940256099942544/5224354917";
+        string adUnitId = idAd_Android;
 #elif UNITY_IPHONE
         string adUnitId = idAd_iOS;
 #else
@@ -187,60 +189,3 @@ public class Ads_Manager : MonoBehaviour
 
 
 
-
-
-/*   
-
-    /*
-    void LoadAdObject()
-    {
-        string adUnitId;
-
-#if UNITY_ANDROID
-            adUnitId = "ca-app-pub-3940256099942544/5224354917";
-#elif UNITY_IPHONE
-            adUnitId = "ca-app-pub-8891462778088936/4527428711";
-#else
-            adUnitId = "unexpected_platform";
-#endif       
-
-        this.rewardedAd = new RewardedAd(adUnitId);
-
-        this.rewardedAd.OnAdLoaded += HandleRewardedAdLoaded;
-        this.rewardedAd.OnAdFailedToLoad += HandleRewardedAdFailedToLoad;
-        this.rewardedAd.OnAdOpening += HandleRewardedAdOpening;
-        this.rewardedAd.OnAdFailedToShow += HandleRewardedAdFailedToShow;
-        this.rewardedAd.OnUserEarnedReward += HandleUserEarnedReward;
-        this.rewardedAd.OnAdClosed += HandleRewardedAdClosed;
-
-        // Create an empty ad request.
-        AdRequest request = new AdRequest.Builder().Build();
-
-        List<string> deviceIds = new List<string>();
-        deviceIds.Add("63f69b14516e82df33cc2eced3e8cc1c");
-        RequestConfiguration.Builder requestConfigurationBuilder = new RequestConfiguration
-            .Builder()
-            .SetTestDeviceIds(deviceIds);
-
-        MobileAds.SetRequestConfiguration(requestConfigurationBuilder.build());
-
-        // Load the rewarded ad with the request.
-        this.rewardedAd.LoadAd(request);
-    }
-
- 
- void OnApplicationPause(bool isPaused)
- {
-     IronSource.Agent.onApplicationPause(isPaused);
- }
-        Debug.Log("unity-script: ShowRewardedVideoButtonClicked");
-        if (IronSource.Agent.isRewardedVideoAvailable())
-        {
-            IronSource.Agent.showRewardedVideo();
-        }
-        else
-        {
-            Debug.Log("unity-script: IronSource.Agent.isRewardedVideoAvailable - False");
-        }
-
- */

@@ -326,6 +326,13 @@ public class MenuManager : MonoBehaviour
 
     public void AdFinished()
     {
+        StartCoroutine("AdFinishedCoroutine");
+    }
+
+    IEnumerator AdFinishedCoroutine()
+    {
+        yield return new WaitForSeconds(0.25f);
+
         if (levels[currentLevel].isAd)
         {
             levels[currentLevel].finished = true;
