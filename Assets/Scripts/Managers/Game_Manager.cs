@@ -87,6 +87,18 @@ public class Game_Manager : MonoBehaviour
     int checkIndex = 0;
     public GameObject[] greenNumbers;
 
+    public Text tutorialText;
+    string[] tutorialTexts = {
+        "Select a Number on the Clock",
+        "Find Correct Numbers in the Combination",
+        "Find Correct Numbers in the Combination",
+        "See Correct Numbers in the Combination at the Top",
+        "See Correct Numbers in the Combination at the Top",
+        "See Correct Numbers in the Combination at the Top",
+        "Complete the Combination to Finish a Level",
+        "Level Completed. Great Job"
+    };
+
 
     bool debugOn = false;
     public Text debugLog;
@@ -101,7 +113,8 @@ public class Game_Manager : MonoBehaviour
         tutorialIndicator.SetActive(false);
         bigCheckmarkGreen.SetActive(false);
         bigCheckmarkRed.SetActive(false);
-        foreach(GameObject check in greenNumbers) { check.SetActive(false); }
+        tutorialText.gameObject.SetActive(false);
+        foreach (GameObject check in greenNumbers) { check.SetActive(false); }
 
         debugLog.gameObject.SetActive(debugOn);     
 
@@ -180,6 +193,8 @@ public class Game_Manager : MonoBehaviour
         if(isTutorial)
         {
             SetTutorialIndicator();
+            tutorialText.gameObject.SetActive(true);
+            tutorialText.text = tutorialTexts[tutorialIndex];
         }
 
     }
@@ -530,7 +545,14 @@ public class Game_Manager : MonoBehaviour
                         }
                     }
 
-                    tutorialIndex++;                   
+                    tutorialText.text = tutorialTexts[tutorialIndex];
+
+                    tutorialIndex++;
+                    if(tutorialIndex >= tutorialIndexes.Length)
+                    {
+                        tutorialIndex = tutorialIndexes.Length - 1;
+                    }
+                    
 
                     if (tutorialIndex < tutorialStates.Length)
                     {

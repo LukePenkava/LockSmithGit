@@ -38,11 +38,15 @@ public class MenuManager : MonoBehaviour
 
     private RewardedAd rewardedAd;
 
+    public GameObject noConnectionPopup;
+
+
     void Start()
     {
         GameObject adsManagerGO = GameObject.FindGameObjectWithTag("AdManager");
+        noConnectionPopup.SetActive(false);
 
-        if(adsManagerGO)
+        if (adsManagerGO)
         {
             adsManager = adsManagerGO.GetComponent<Ads_Manager>();
         }
@@ -263,8 +267,8 @@ public class MenuManager : MonoBehaviour
             int maxNumbers = Helper.minNumbers + Mathf.CeilToInt(difIndex * (Helper.maxNumbers - Helper.minNumbers)); 
             levelObj.numbersUsed = UnityEngine.Random.Range(Helper.minNumbers, maxNumbers);
 
-            int minRange = 2; //Provide always some range, otherwise the combination would be for example always only 3 for a long time
-            int maxComb = Helper.minCombinationLength + minRange + Mathf.CeilToInt(difIndex * ((Helper.maxCombinationLength- minRange) - Helper.minCombinationLength));
+            int minRange = 1; //Provide always some range, otherwise the combination would be for example always only 3 for a long time
+            int maxComb = Helper.minCombinationLength + minRange + Mathf.CeilToInt(difIndex * ((Helper.maxCombinationLength - minRange) - Helper.minCombinationLength));
             levelObj.combinationLength = UnityEngine.Random.Range(Helper.minCombinationLength, maxComb);
 
             float minStep = Helper.minTimeStep + ((1f - difIndex) * (Helper.maxTimeStep - Helper.minTimeStep));
@@ -309,7 +313,15 @@ public class MenuManager : MonoBehaviour
             }
             else
             {
-                adsManager.ShowRewardedAd();
+                if (adsManager.HasConnection)
+                {
+                    adsManager.ShowRewardedAd();
+                }
+                else
+                {
+                    Debug.Log("No Connection");
+                    noConnectionPopup.SetActive(true);
+                }
             }
         }
         else
@@ -322,6 +334,12 @@ public class MenuManager : MonoBehaviour
             PlayerPrefs.SetInt("Level", levelData.level);
             SceneManager.LoadScene("GameScene");
         }        
+    }
+
+    public void Reconnect()
+    {
+        noConnectionPopup.SetActive(false);
+        adsManager.CheckConnection();
     }
 
     public void AdFinished()

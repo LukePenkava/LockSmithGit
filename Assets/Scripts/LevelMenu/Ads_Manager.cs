@@ -6,11 +6,10 @@ using GoogleMobileAds.Api;
 using GoogleMobileAds.Common;
 using UnityEngine.Analytics;
 using UnityEngine.SceneManagement;
+using System.Net;
 
 public class Ads_Manager : MonoBehaviour
 {
-    MenuManager menuManager;
-
     private RewardedAd rewardedAd;
 
     string testDeviceId_iOS = "63f69b14516e82df33cc2eced3e8cc1c";
@@ -21,17 +20,25 @@ public class Ads_Manager : MonoBehaviour
 
     #region Init
 
+    string URL = "https://www.google.com";
+    bool hasConnection = false;
+    public bool HasConnection
+    {
+        get { return hasConnection; }
+    }
+
     void Start()
     {
         DontDestroyOnLoad(this.gameObject);
-
-
         if (Application.isEditor) { return; }
 
-        menuManager = GetComponent<MenuManager>();
 
-        MobileAds.SetiOSAppPauseOnBackground(true);        
+        CheckConnection();
+    }
 
+    void InitAds()
+    {
+        MobileAds.SetiOSAppPauseOnBackground(true);
         List<string> deviceIds = new List<string>() { AdRequest.TestDeviceSimulator };
 
         // Add some test device IDs (replace with your own device IDs).
@@ -49,7 +56,6 @@ public class Ads_Manager : MonoBehaviour
             .build();
 
         MobileAds.SetRequestConfiguration(requestConfiguration);
-
         // Initialize the Google Mobile Ads SDK.
         MobileAds.Initialize(HandleInitCompleteAction);
 
@@ -122,8 +128,7 @@ public class Ads_Manager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Didnt Show Ad");
-            //menuManager.AdFinished();
+            Debug.Log("Didnt Show Ad");        
         }
     }
 
@@ -140,7 +145,16 @@ public class Ads_Manager : MonoBehaviour
     {
         Debug.Log("Ad Failed to load " + args.Message);
         Analytics.CustomEvent("AdFailedToLoad");
-        menuManager.AdFinished();
+
+        GameObject menuGO = GameObject.FindGameObjectWithTag("MenuManager");
+        if (menuGO)
+        {
+            menuGO.GetComponent<MenuManager>().AdFinished();
+        }
+        else
+        {
+            Debug.Log("Could not find Menu Manager");
+        }
     }
 
     public void HandleRewardedAdOpening(object sender, EventArgs args)
@@ -153,7 +167,16 @@ public class Ads_Manager : MonoBehaviour
     {
         Debug.Log("Ad Failed to Open " + args.Message);
         Analytics.CustomEvent("AdFailedToShow");
-        menuManager.AdFinished();
+
+        GameObject menuGO = GameObject.FindGameObjectWithTag("MenuManager");
+        if (menuGO)
+        {
+            menuGO.GetComponent<MenuManager>().AdFinished();
+        }
+        else
+        {
+            Debug.Log("Could not find Menu Manager");
+        }
     }
 
     public void HandleRewardedAdClosed(object sender, EventArgs args)
@@ -184,6 +207,36 @@ public class Ads_Manager : MonoBehaviour
     }
 
     #endregion
+
+    
+    public void CheckConnection()
+    {
+        try
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+            request.Timeout = 5000;
+            request.Credentials = CredentialCache.DefaultNetworkCredentials;
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                hasConnection = true;
+                InitAds();
+            }
+            else
+            {
+                hasConnection = false;
+                Debug.Log("No Internet Connection 1");
+                SceneManager.LoadScene("MenuScene");
+            }
+        }
+        catch
+        {
+            hasConnection = false;
+            Debug.Log("No Internet Connection 2");
+            SceneManager.LoadScene("MenuScene");
+        }
+    }
 
 }
 
